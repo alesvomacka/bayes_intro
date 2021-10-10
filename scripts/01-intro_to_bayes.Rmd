@@ -1,0 +1,408 @@
+---
+title: "**Rychlý průlet Bayesovskou statistikou**"
+author: "Aleš Vomáčka"
+output:
+  beamer_presentation:
+    latex_engine: xelatex
+    theme: "Szeged"
+    slide_level: 2
+    dev: cairo_pdf
+classoption: "aspectratio=169"
+mainfont: "Roboto Slab Regular"
+lang: cs
+urlcolor: orange
+header-includes:
+  \setbeamercolor{structure}{fg=orange}
+  \setbeamercolor{lower separation line head}{bg=white}
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "../presentation") })
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+
+library(tidyverse)
+library(scales)
+
+theme_set(theme_light())
+```
+
+## Dnešní cíle
+
+1)  Rozdíly mezi frekventistickou a bayesiánskou statistikou
+\newline
+2)  Jak bayesiánská statistika funguje
+\newline
+3)  Jak na baysiánskou statistiku v R
+
+# Paradigmata ve statistice
+
+## Paradigmata ve statistice
+
+-   Statistika má paradigmata stejně jako sociologie
+\newline
+-   Dnes je nejpopulárnější frekventistická statistika
+
+    -   \footnotesize ... která nám dala p hodnoty, testování nulových hypotéz apod.
+\newline
+-   Bayesiánská statistika ale nabírá na síle (a navíc byla první)
+
+## Paradigmata ve statistice
+
+-   Dva základní rozdíly mezi frekventisty a bayesiánci:
+\newline
+    -   Co je pravděpodobnost?
+
+    -   Jak se dívat na populační parametry?
+
+------------------------------------------------------------------------
+
+```{=tex}
+\begin{center}
+\Huge Co je pravděpodobnost?
+\end{center}
+```
+
+------------------------------------------------------------------------
+
+## Co je pravděpodobnost?
+
+-   **Frekventisti:** Pravděpodobnost je (limitní) výskyt jevu napříč velkým počtem pokusů.
+\newline
+-   **Bayesiánci:** Pravděpodobnost je subjektivní míra jistoty, že dojde k nějakému jevu (kterou můžeme interpretovat jako sázkařský kurz).
+
+## Co je pravděpodobnost?
+
+- Jak interpretovat $P(mince = orel) = 0.9$?
+\newline
+\newline
+-   **Frekventisti:** Pokud bychom mnohokrát hodili touto mincí, v 9 případech z 10 by padnul orel.
+\newline
+-   **Bayesiánci:** Jsme si dost jistý, že pokud bych hodil touhle mincí, tak by padnul orel, abych si na to vsadil s kurzem 9:1.
+
+## Co je pravděpodobnost?
+
+-   Frekventistická definice pravděpodobnosti objektivní, zaměřená na opakování pokusů
+\newline
+- Bayesiánská definice pravděpodobnosti subjektiní (ale ne arbitrátní), zaměřená na kvantifikaci osobních znalostí
+
+---
+
+```{=tex}
+\begin{center}
+\Huge Jak se dívat na populační parametry?
+\end{center}
+```
+
+---
+
+## Jak se dívat na populační parametry?
+
+-   Populační parametr = skutečná hodnota, kterou hledáme
+
+    - (např. volební prefrence dané strany v populaci) 
+\newline
+\newline
+-   **Frekventisti:** Populační parametr je jedna fixní (většinou neznámá) hodnota.
+\newline
+-   **Bayesiánci:** Populační parametr je hodnota, která se s určitou pravděpodobností vyskytuje v daném intervalu.
+\newline
+
+## Jak se dívat na populační parametry?
+
+-   Interpretace populačních parametrů (a pravděpodobností) v praxi důležitá pro interpretaci intervalových odhadů.
+\newline
+\newline
+-   **Frekventisti:** Interval spolehlivost je interval, který bude napříč velkým počtem vzorků obsahovat skutečnou hodnotu (populační parametr) s danou pravděpodobností.
+\newline
+-   **Bayesiánci:** Interval kredibility je interval, který s danou pravděpodobností obsahuje skutečnou hodnotu (populační parametr).
+
+## Jak se dívat na populační parametry?
+
+-   Jak interpretovat, že podpora strany je $95\% \; CI \; [26;29]$ procent?
+\newline
+\newline
+- **Frekventisti:** Pokud bychom opakovaně tahali velké množství vzorků stejné velikosti z populace a pro každý z nich spočítali 95% interval spolehlivosti, 95 % z nich by obsahovalo skutečnou hodnotu podpory strany. Rozpětí těchto intervalů by mělo cca 3 procentní body (29 - 26).
+\newline
+- **Bayesánci:** Na 95 % je skutečná podpora strany něco mezi 26 a 29 procenty.
+
+## Shrnutí 
+
+-   **Frekventistická statistika** založená myšlence opakovaného měření, garantuje určité vlastnosti napříč velkým množstvím vzorků (např. pokrytí intervalů spolehlivosti), ale neříká nic o výsledcích konkrétních experimentů nebo našich hypotézach
+\newline
+-   **Bayesiánská statistika** založená na kvantifikaci našich představ o světě, umožňuje přiřazovat pravděpodobnost našim hypotézám, ale negarantuje nic napříč velkým množsvím experimentům.
+
+# O čem je bayesiánská statistika
+
+## Bayesův teorém
+
+-   Centrem bayesiánské statistiky je bayesův teorém:
+
+$$
+P(Hypotéza|Data) = \frac{P(Data|Hypotéza) * P(Hypotéza)}{P(Data)}
+$$
+-   V praxi se dá zjednodušit:
+
+$$
+P(Hypotéza|Data) \propto P(Data|Hypotéza) * P(Hypotéza)
+$$
+
+## Bayesův teorém
+
+$$
+P(Hypotéza|Data) \propto P(Data|Hypotéza) * P(Hypotéza)
+$$
+\newline
+\newline
+\small
+
+-   $P(Hypotéza)$ je **prior**, naše dosavadní představa o světě.
+
+-   $P(Data|Hypotéza)$ je **likelihood**, informace obsažené v datech, které máme k dispozici.
+
+-   $P(Hypotéza|Data)$ je **posterior**, naše představa o světě obohacná o data, která máme k dispozici.
+
+\normalsize
+
+## Bayesův teorém
+
+-   Všimněte si, že posterior je kombinace (kompromis) toho, co už jsme věděli a nových důkazů, které máme k dispozici.
+
+$$
+Posterior \propto Likelihood * Prior
+$$
+
+
+-   To nás vede k (podle mě) největší taháku bayesiánské statistiky...
+
+---
+
+```{=tex}
+\begin{center}
+\Huge Bayesiánská statistika je formalizovaný způsob, jak aktualizovat naše názory na svět.
+\end{center}
+```
+
+---
+
+# Příklad s volbami
+
+## Příklad - Jak aktualizovat náš pohled na svět
+
+-   Představte si, že je rok 2023 a blíží se prezidentské volby.
+\newline
+-   Slyšeli jste, že se objevil nový kandidát jménem Tomáš Bajes.
+\newline
+-   Je prý docela populární.
+\newline
+\newline
+-   Kolik procent voličů ho podle vás bude volit?
+
+## Příklad - Náš prior
+
+```{r example-data}
+example_vote <- tibble(p_grid     = seq(from = 0, to = 1, length.out = 500),
+                       prior      = dnorm(p_grid, mean = 0.5, sd = 0.10) ) %>% 
+  mutate(likelihood = dnorm(p_grid, mean = 0.35, sd = 0.1)) %>% 
+  mutate(prior = prior / sum(prior),
+         likelihood = likelihood / sum(likelihood),
+         posterior  = (likelihood * prior / sum(likelihood * prior)))
+
+map_estimate <- example_vote$p_grid[which.max(example_vote$posterior)]
+```
+
+```{r example-prior, fig.height=4.5}
+ggplot(data = example_vote, aes(x = p_grid)) +
+  geom_line(aes(y = prior, color = "Prior")) +
+  geom_ribbon(aes(ymax = prior, ymin = 0),
+                  data = filter(example_vote, p_grid < 0.7 & p_grid > 0.3),
+              fill = "#e41a1c", alpha = 0.3) +
+  scale_color_manual(values = "#e41a1c") +
+  scale_x_continuous(labels = percent_format(accuracy = 1)) +
+  scale_y_continuous(breaks = NULL, limits = c(0, 0.01)) +
+  annotate(geom = "text", x = 0.5, y = 0.009,
+           label = "S největší pravděpodobností\ntipujeme 50%", color = "#e41a1c") +
+  annotate(geom = "text", x = 0.5, y = 0.001,
+           label = "Na 95% dostane\n30 až 70 procent hlasů", color = "#e41a1c") +
+  labs(x = "Podíl hlasů pro Tomáše Bajese",
+       y = element_blank(),
+       color = element_blank()) +
+  theme(legend.position = "bottom")
+```
+
+## Příklad - Naše likelihood
+
+-   Protože toho o novém kandidátovi moc nevíme, tipujeme, že dostane mezi 30% a 70% hlasů (předchozí slide)
+\newline
+-   CVVM zveřejnilo nový průzkum, podle kterého má Tomáš Bayes dostat 35 procent hlasů, se standardní chybou 5 procent.
+\newline
+-   Tuhle informaci můžeme začlenit do našeho pohledu na svět.
+
+## Příklad - Naše likelihood
+
+```{r example-likelihood, fig.height=4.5}
+ggplot(data = example_vote, aes(x = p_grid)) +
+  geom_line(aes(y = prior, color = "Prior"), alpha = 0.3) +
+  geom_line(aes(y = likelihood, color = "Likelihood")) +
+  scale_color_manual(values = c("#377eb8", "#e41a1c")) +
+  scale_x_continuous(labels = percent_format(accuracy = 1)) +
+  scale_y_continuous(breaks = NULL, limits = c(0, 0.01)) +
+  annotate(geom = "text", x = 0.35, y = 0.009,
+           label = "Podle průzkumu dostane\nBajes 35% hlasů", color = "#377eb8") +
+  labs(x = "Podíl hlasů pro Tomáše Bajese",
+       y = element_blank(),
+       color = element_blank()) +
+  theme(legend.position = "bottom")
+```
+
+## Příklad - Náš posterior
+
+```{r example-posterior, fig.height=4.5}
+ggplot(data = example_vote, aes(x = p_grid)) +
+  geom_line(aes(y = prior, color = "Prior"), alpha = 0.3) +
+  geom_line(aes(y = likelihood, color = "Likelihood"), alpha = 0.3) +
+  geom_line(aes(y = posterior, color = "Posterior")) +
+  scale_color_manual(values = c("#377eb8", "#984ea3", "#e41a1c")) +
+  scale_x_continuous(labels = percent_format(accuracy = 1)) +
+  scale_y_continuous(breaks = NULL, limits = c(0, 0.015)) +
+  annotate(geom = "text", x = map_estimate, y = 0.013,
+           label = paste0("Nově si myslíme, že Bajes\ndostane nejspíše ", percent(map_estimate, 1), " hlasů"),
+           color = "#984ea3") +
+  labs(x = "Podíl hlasů pro Tomáše Bajese",
+       y = element_blank(),
+       color = element_blank()) +
+  theme(legend.position = "bottom")
+```
+
+# Priory
+
+## Výhody a nevýhody priorů
+
+-   Naše priory ovliňují výsledek, musíme je tedy vybírat opatrně
+\newline
+-   Na druhou stranu, dobře zvolené priory pomáhají zpřesnit výsledky, snížují nároky na velikost vzorku a zabraňují nesmyslným výsledkům.
+\newline
+-   Pro bayesiánskou analýzu musí být nějaký prior zvolen (i kdyby naším priorem bylo, že nic nevíme).
+
+## Vliv priorů na výsledek
+
+-   Vliv prioru a likelihoodu na posterior nemusí být stejně velký.
+\newline
+\newline
+-   Čím větší vzorek, tím větší vliv likelihood.
+\newline
+-   Čím silnější/přesnější prior, tím větší jeho vliv.
+\newline
+-   Výběr prioru je tedy důležitý primárně u relativně malých vzorků.
+
+## Jak vybírat priory
+
+-   Zdrojem prioru může být teoreticky cokoliv (od meta analýzy po expertní úsedek)
+\newline
+-   Jediným technickým požadavkem je, že musí jít o pravděpodobnostní rozdělení.
+    -   "Můj kandidát dostane 50 procent´ hlasů" není prior
+    -   "Můj kandidát dostane $N(m = 0.5, sd = 0.1)$ procent hlasů" je prior
+    
+## Typy priorů
+
+-   Obecné kategorie priorů
+    -   Neinformativní priory
+    -   Slabě informativní priory
+    -   Silně informativní priory
+
+- Do které kategorie náš prior patří závisí na kontextu.
+
+## Neinformativní priory
+
+```{r noninformative-example, fig.height=4.5}
+ggplot(data = data.frame(x = c(0, 1)), aes(x)) +
+  stat_function(fun = dunif, n = 101, args = list(min = 0, max = 1), color = "#e41a1c") +
+  scale_y_continuous(breaks = NULL) +
+  scale_x_continuous(labels = percent_format(1)) +
+  labs(x = "Podíl hlasů pro Tomáše Bajese",
+       y = element_blank())
+```
+
+##  Neinformativní priory
+
+-   Vyjadřují, že nic nevíme. Spoléháme pouze na data, která máme k dispozici
+    -   Tohle je v podstatě frekventistický způsob
+
+
+-   V praxi se nedoporučují
+    - Jsou nerealistické
+    - Výpočetní problémy
+    
+## Slabě infomativní priory
+
+```{r weakprior-example, fig.height=4.5}
+ggplot(data = data.frame(x = c(0, 1)), aes(x)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = 0.5, sd = 0.2), color = "#e41a1c") +
+  scale_y_continuous(breaks = NULL) +
+  scale_x_continuous(labels = percent_format(1)) +
+  labs(x = "Podíl hlasů pro Tomáše Bajese",
+       y = element_blank())
+```
+
+## Slabě infomativní priory
+
+-   Nemají moc velký vliv na výsledek
+-   Slouží primárně k předcházení výsledků, kterou jsou považovány za extrémně nepravděpodobné
+-   Většina výzkumníků používá slabě informativní priory
+
+## Silně informativní priory
+
+```{r strongprior-example, fig.height=4.5}
+ggplot(data = data.frame(x = c(0, 1)), aes(x)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = 0.25, sd = 0.05), color = "#e41a1c") +
+  scale_y_continuous(breaks = NULL) +
+  scale_x_continuous(labels = percent_format(1)) +
+  labs(x = "Podíl hlasů pro Tomáše Bajese",
+       y = element_blank())
+```
+
+## Silně informativní priory
+
+-   Mají relativně velký vliv na výsledek.
+\newline
+-   Používají se, pokud existuje hodně informací na dané téma nebo pokud je nutné suplovat malý vzorek.
+\newline
+-   Nutné velmi dobře teoreticky odůvodnit.
+
+# Bayesiánská statistika v R (konečně)
+
+## Bayesiánská statistika v R
+
+-   Bayesiánské modely zpravidla relativně náročné na výpočet.
+\newline
+-   Bayesiánské modely se proto v R nepočítají, protože R je na to moc pomalé.
+\newline
+-   Nejčastěji se používá programovací jazyk Stan.
+\newline
+-   Naštěstí pro nás, Stan je možné ovládat skrze R
+
+## Baličky pro bayesiánskou statistiku
+
+-   `rstan` - balíček pro posílání dat mezi Rkem a Stanem
+-   `rstanarm` - předpřipravené funkce pro urychlení práce, na způsob `lm()` a `glm()`
+-   `brms` - pokročilejší modely, např. multilevel modely, IRT, apod.
+
+## Výpočet bayesiánských modelů
+
+-   V praxi 2 způsoby, jak se dopočítat modelu
+    -   Analyticky (MAP, Grid) - výpočet pomocí vzorce, nuntné počítat hromadu integrálů
+    -   Pomocí simulae (MCMC) - aproximativní výpočet pomocí tzv. Markov chain Monte Carlo
+    
+## Markov chain Monte Carlo
+
+- U komplikovaných modelů se nemůžeme dopočítat posteriorního rozdělení přímo, ale můžeme z nich tahat vzorky.
+  \newline
+- Výsledkem modelu je vzorek pozorování z posteriou, který můžem sumarizovat.
+\newline
+- Při interpretaci modelu si musíme dát pozor, aby simulace proběhla v pořádku.
+\newline
+- geniálně a graficky vysvětlené [zde](https://arogozhnikov.github.io/2016/12/19/markov_chain_monte_carlo.html).
+
+---
+
+A teď už konečně do Rka...
