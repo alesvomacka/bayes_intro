@@ -234,7 +234,7 @@ ggplot(data = example_vote, aes(x = p_grid)) +
 
 -   Protože toho o novém kandidátovi moc nevíme, tipujeme, že dostane mezi 30% a 70% hlasů (předchozí slide)
 \newline
--   CVVM zveřejnilo nový průzkum, podle kterého má Tomáš Bayes dostat 35 procent hlasů, se standardní chybou 5 procent.
+-   CVVM zveřejnilo nový průzkum, podle kterého má Tomáš Bajes dostat 35 procent hlasů, se standardní chybou 5 procent.
 \newline
 -   Tuhle informaci můžeme začlenit do našeho pohledu na svět.
 
