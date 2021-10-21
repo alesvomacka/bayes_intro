@@ -110,3 +110,24 @@ knitr::include_graphics("../images/markov-chain.png")
 - Konceptuální znalost MCMC je důležitá:
     - Abyste chápali, proč je výpočet bayesiánských modelů tak pomalý (ve srovnání s MLE)
     - Abyste vědělii, jak interpretovat diagnostické grafy.
+    
+    
+# R InteRmezzo
+
+## Špatná konvergence
+
+```{r no-convergence-1, out.height="5cm"}
+knitr::include_graphics("../images/no-converge1.png")
+```
+
+## Špatná konvergence
+
+```{r no-convergence-2, out.height="5cm"}
+knitr::include_graphics("../images/no-converge2.png")
+```
+
+## Divergentní tranzice
+
+```{r divergent-transitions, out.height="5cm"}
+knitr::include_graphics("../images/divergent-transitions.png")
+```
